@@ -6,8 +6,9 @@ This folder is the manuscript companion for
 Public repository:
 https://github.com/tuanymc/p2a-prerequisite-graphs
 
-Scoring logs (`06_runs/`) stay in the project archive and will be
-published on acceptance. Do not commit `.env` or OpenRouter keys.
+Scoring logs with full prompts and spans (`06_runs/`) stay in the
+project archive. Slim JSON probabilities for the reported tables are
+in `scores/`. Do not commit `.env` or OpenRouter keys.
 
 ## What is included
 
@@ -22,6 +23,9 @@ published on acceptance. Do not commit `.env` or OpenRouter keys.
   (not the 135k pair-id lists)
 - `examples/four_pairs.json` — the four inspect pairs in Table of
   worked examples
+- `human/` — both 240-pair sheets (filled CSV, 80-pair overlap, adjudicated gold)
+- `scores/` — slim `p_A_to_B` / `p_B_to_A` / gold for E val+test (`mini_*`)
+  and the Qwen 2.5 7B val/test tables
 - `eval/b7_full_pool.json` — official scaled B7 on the 135,726 scored
   E train+val+test pairs
 - `eval/gate_b.json` — bootstrap / SVM / earlier val+test graph snapshot
@@ -36,8 +40,7 @@ membership is 0.163.
 
 - API keys, `.env`, OpenRouter keys
 - `01_raw/esco_prereq/` dump (download ESCO-PrereqSkill from Le and Abel)
-- `06_runs/*.jsonl` scoring logs
-- the 240-pair human sheet
+- full `06_runs/*.jsonl` prompt-and-span scoring logs
 
 ## Rebuild split E
 

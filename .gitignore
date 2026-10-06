@@ -5,3 +5,9 @@ __pycache__/
 06_runs/
 *.jsonl
 !examples/four_pairs.json
+!human/
+!human/**
+!human/**/*.jsonl
+!scores/
+!scores/**
+!scores/*.jsonl

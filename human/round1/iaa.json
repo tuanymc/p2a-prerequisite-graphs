@@ -1,0 +1,23 @@
+{
+  "n_iaa_both_filled": 80,
+  "n_agree": 70,
+  "n_disagree": 10,
+  "raw_agreement": 0.875,
+  "cohen_kappa_label": 0.7898,
+  "confusion_Tuan_to_Thu": {
+    "0->0": 41,
+    "3->3": 7,
+    "0->3": 1,
+    "1->1": 22,
+    "3->0": 2,
+    "1->3": 2,
+    "3->1": 5
+  },
+  "n_Tuan_filled": 160,
+  "n_Thu_filled": 160,
+  "n_lech_for_Hien": 10,
+  "n_khop_auto": 70,
+  "hien_file": "04_annotation\\round1_g2\\03_DaoAnhHien\\Phieu_DaoAnhHien_phan_xu.csv",
+  "hien_lech_only": "04_annotation\\round1_g2\\03_DaoAnhHien\\Phieu_DaoAnhHien_chi_LECH.csv",
+  "hien_nop_copy": "04_annotation\\round1_g2\\nop\\Phieu_DaoAnhHien_phan_xu.csv"
+}
