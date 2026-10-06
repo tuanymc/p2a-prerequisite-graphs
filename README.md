@@ -3,6 +3,9 @@
 This folder is the manuscript companion for
 *From Pair Scores to Prerequisite Graphs: When Retrieved Evidence Helps*.
 
+Public repository:
+https://github.com/tuanymc/p2a-prerequisite-graphs
+
 Scoring logs (`06_runs/`) stay in the project archive and will be
 published on acceptance. Do not commit `.env` or OpenRouter keys.
 
