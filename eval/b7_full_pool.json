@@ -1,0 +1,167 @@
+{
+  "n_scored": 135726,
+  "n_train_file": 77507,
+  "n_train_expected": 77507,
+  "n_gold_train": 1605,
+  "graph_stats": {
+    "n": 135726,
+    "self_loop": 0,
+    "reverse_conflict": 10699,
+    "no_evidence": 0,
+    "taxonomy_flag": 178,
+    "l_irr": 0.3031,
+    "n_cycles": 21461,
+    "edges_broken_for_dag": 21461,
+    "is_dag": false,
+    "accepted": 10209
+  },
+  "finished": {
+    "extra_deleted": 1303,
+    "n_rounds": 140,
+    "n_B5_tau": 31670,
+    "n_B7": 8906,
+    "n_C3": 22764,
+    "is_dag": true,
+    "accepted": 8906
+  },
+  "prf": {
+    "B5_at_tau_scaled": {
+      "full_gold": {
+        "n_pred": 31670,
+        "n_gold": 5797,
+        "tp": 2450,
+        "fp": 29220,
+        "fn": 3347,
+        "precision": 0.0774,
+        "recall": 0.4226,
+        "f1": 0.1308
+      },
+      "in_pool": {
+        "n_pred": 31670,
+        "n_gold": 2800,
+        "tp": 2450,
+        "fp": 29220,
+        "fn": 350,
+        "precision": 0.0774,
+        "recall": 0.875,
+        "f1": 0.1422
+      },
+      "in_etv_scored": {
+        "n_pred": 31670,
+        "n_gold": 1195,
+        "tp": 1056,
+        "fp": 30614,
+        "fn": 139,
+        "precision": 0.0333,
+        "recall": 0.8837,
+        "f1": 0.0643
+      },
+      "in_test": {
+        "n_pred": 31670,
+        "n_gold": 1003,
+        "tp": 889,
+        "fp": 30781,
+        "fn": 114,
+        "precision": 0.0281,
+        "recall": 0.8863,
+        "f1": 0.0544
+      },
+      "in_train_pool": {
+        "n_pred": 31670,
+        "n_gold": 1605,
+        "tp": 1394,
+        "fp": 30276,
+        "fn": 211,
+        "precision": 0.044,
+        "recall": 0.8685,
+        "f1": 0.0838
+      }
+    },
+    "B7_accepted_scaled": {
+      "full_gold": {
+        "n_pred": 8906,
+        "n_gold": 5797,
+        "tp": 890,
+        "fp": 8016,
+        "fn": 4907,
+        "precision": 0.0999,
+        "recall": 0.1535,
+        "f1": 0.1211
+      },
+      "in_pool": {
+        "n_pred": 8906,
+        "n_gold": 2800,
+        "tp": 890,
+        "fp": 8016,
+        "fn": 1910,
+        "precision": 0.0999,
+        "recall": 0.3179,
+        "f1": 0.1521
+      },
+      "in_etv_scored": {
+        "n_pred": 8906,
+        "n_gold": 1195,
+        "tp": 389,
+        "fp": 8517,
+        "fn": 806,
+        "precision": 0.0437,
+        "recall": 0.3255,
+        "f1": 0.077
+      },
+      "in_test": {
+        "n_pred": 8906,
+        "n_gold": 1003,
+        "tp": 332,
+        "fp": 8574,
+        "fn": 671,
+        "precision": 0.0373,
+        "recall": 0.331,
+        "f1": 0.067
+      },
+      "in_train_pool": {
+        "n_pred": 8906,
+        "n_gold": 1605,
+        "tp": 501,
+        "fp": 8405,
+        "fn": 1104,
+        "precision": 0.0563,
+        "recall": 0.3121,
+        "f1": 0.0953
+      }
+    }
+  },
+  "pair_test_B7": {
+    "precision": 0.1078,
+    "recall": 0.331,
+    "f1": 0.1627,
+    "tp": 332,
+    "fp": 2747,
+    "fn": 671,
+    "n_pred": 3079,
+    "n_pos": 1003
+  },
+  "direction_test": {
+    "da": 0.7149,
+    "frm": 0.0459,
+    "n_pos_dir": 1003
+  },
+  "closure": {
+    "n_gold_tc": 5990,
+    "n_pred_tc": 66363,
+    "B7_in_gold_direct": 890,
+    "B7_in_gold_tc_not_direct": 3,
+    "B7_outside_gold_tc": 8013,
+    "gold_direct_in_B7_tc": 1219,
+    "recall_gold_via_B7_tc": 0.2103,
+    "precision_B7_vs_gold_tc": 0.1003,
+    "is_dag": true
+  },
+  "n_B5_tau": 31670,
+  "n_B7": 8906,
+  "alt_path": {
+    "n": 8906,
+    "alt": 1534,
+    "gold_alt": 169,
+    "pct": 0.1722
+  }
+}

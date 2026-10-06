@@ -1,0 +1,48 @@
+# Qwen 2.5 7B Instruct qua OpenRouter — khong de so gpt-4o-mini.
+# Key/URL: .env.openrouter hoac bien P2A_LLM_* trong shell. Khong dung .env OpenAI.
+name: qwen_openrouter
+seed: 42
+
+data:
+  skills: 01_raw/esco_prereq/skills.jsonl
+  gold: 01_raw/esco_prereq/gold_edges.jsonl
+  docs: 01_raw/esco_prereq/docs.jsonl
+
+splits:
+  primary: E
+  also_report: [A]
+  pair_split_ratio: [0.8, 0.1, 0.1]
+  unseen_concept_frac: 0.2
+
+candidates:
+  top_k_similar: 16
+  use_taxonomy_neighbors: true
+  use_cooccurrence: false
+
+retrieval:
+  top_k_docs: 4
+  max_span_chars: 280
+
+llm:
+  mode: openai_compat
+  model_open: qwen/qwen-2.5-7b-instruct
+  model_frontier: null
+  temperature: 0.0
+  mu_irr: 0.8
+  tau_accept: 0.5
+
+calibration:
+  method: temperature
+
+graph:
+  mu: 0.8
+  tau_conflict: 0.5
+
+review:
+  budgets: [0.10, 0.20, 0.30]
+  n_human: 200
+
+conditions:
+  B1: {use_evidence: false, use_taxonomy: false, use_calibration: false, use_graph: false}
+  B3: {use_evidence: true,  use_taxonomy: false, use_calibration: false, use_graph: false}
+  B5: {use_evidence: true,  use_taxonomy: true,  use_calibration: false, use_graph: false}

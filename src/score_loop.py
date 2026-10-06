@@ -100,7 +100,7 @@ def score_pairs(
             except Exception as exc:
                 row = {
                     "pair_id": pid,
-                    "error": type(exc).__name__,
+                    "error": str(exc)[:400],
                     "p_A_to_B": 0.0,
                     "p_B_to_A": 0.0,
                     "relation_type": "none",

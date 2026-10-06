@@ -6,6 +6,7 @@ import json
 import math
 import os
 import time
+import urllib.error
 import urllib.request
 from typing import Any
 
@@ -145,7 +146,12 @@ def mock_reason(
     }
 
 
-def openai_compat_reason(prompt: str, model: str, temperature: float = 0.0) -> dict[str, Any]:
+def openai_compat_reason(
+    prompt: str,
+    model: str,
+    temperature: float = 0.0,
+    extra: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     url = os.environ.get("P2A_LLM_URL", "https://api.openai.com/v1/chat/completions")
     key = os.environ.get("P2A_LLM_KEY") or os.environ.get("OPENAI_API_KEY")
     if not key:
@@ -158,9 +164,11 @@ def openai_compat_reason(prompt: str, model: str, temperature: float = 0.0) -> d
             {"role": "user", "content": prompt},
         ],
     }
+    if extra:
+        body.update(extra)
     if os.environ.get("P2A_LLM_JSON_OBJECT", "1") != "0":
-        body["response_format"] = {"type": "json_object"}
-    timeout = 300 if "11434" in url or "localhost" in url or "127.0.0.1" in url else 120
+        body.setdefault("response_format", {"type": "json_object"})
+    timeout = 300 if "11434" in url or "localhost" in url or "127.0.0.1" in url else 180
     data = json.dumps(body).encode("utf-8")
     last_err: Exception | None = None
     for attempt in range(6):
@@ -180,16 +188,29 @@ def openai_compat_reason(prompt: str, model: str, temperature: float = 0.0) -> d
         try:
             with urllib.request.urlopen(req, timeout=timeout) as resp:
                 payload = json.loads(resp.read().decode("utf-8"))
-            text = payload["choices"][0]["message"]["content"]
+            msg = payload["choices"][0]["message"]
+            text = msg.get("content")
+            if isinstance(text, list):
+                text = "".join(
+                    (p.get("text") or p.get("content") or "") if isinstance(p, dict) else str(p)
+                    for p in text
+                )
+            text = text or msg.get("reasoning") or ""
             return _parse_llm_json(text)
+        except urllib.error.HTTPError as exc:
+            err_body = ""
+            try:
+                err_body = exc.read().decode("utf-8", errors="replace")[:400]
+            except Exception:
+                pass
+            last_err = RuntimeError(f"HTTP {exc.code}: {err_body}")
+            if int(exc.code) not in {408, 409, 429, 500, 502, 503, 529} and attempt >= 2:
+                break
+            time.sleep(min(32.0, 1.5 * (2 ** attempt)))
         except Exception as exc:
             last_err = exc
-            code = getattr(exc, "code", None)
-            if code and int(code) not in {408, 409, 429, 500, 502, 503, 529}:
-                if attempt >= 2:
-                    break
             time.sleep(min(32.0, 1.5 * (2 ** attempt)))
-    raise RuntimeError(f"LLM request failed after retries: {type(last_err).__name__}")
+    raise RuntimeError(f"LLM request failed after retries: {last_err}")
 
 
 def reason_pair(
@@ -216,4 +237,5 @@ def reason_pair(
         prompt,
         cfg.get("model_open") or "gpt-4o-mini",
         float(cfg.get("temperature") or 0.0),
+        extra=cfg.get("extra") if isinstance(cfg.get("extra"), dict) else None,
     )
