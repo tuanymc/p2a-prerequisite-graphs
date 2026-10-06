@@ -1,0 +1,9 @@
+pandas>=2.0
+numpy>=1.24
+scikit-learn>=1.3
+networkx>=3.2
+pyyaml
+tqdm
+# tùy chọn: nhúng ứng viên / truy hồi
+# sentence-transformers>=2.7,<4
+# faiss-cpu>=1.7

@@ -1,0 +1,292 @@
+{
+  "graph": {
+    "n_gold": 5797,
+    "n_gold_pool": 2800,
+    "n_gold_etv": 1195,
+    "n_gold_test": 1003,
+    "n_gold_train_pool_unscored": 1605,
+    "coverage_s2": 0.483,
+    "n_B5_tau_directed": 15879,
+    "n_B7": 6555,
+    "n_C3_removed_from_tau": 9324,
+    "note": "B7/B5 graphs are induced only from E val+test scored pairs (58,219). Train-pool gold cannot appear in the accepted DAG.",
+    "prf": {
+      "B5_at_tau_directed": {
+        "full_gold": {
+          "n_pred": 15879,
+          "n_gold": 5797,
+          "tp": 1095,
+          "fp": 14784,
+          "fn": 4702,
+          "precision": 0.069,
+          "recall": 0.1889,
+          "f1": 0.101
+        },
+        "in_pool": {
+          "n_pred": 15879,
+          "n_gold": 2800,
+          "tp": 1095,
+          "fp": 14784,
+          "fn": 1705,
+          "precision": 0.069,
+          "recall": 0.3911,
+          "f1": 0.1172
+        },
+        "in_etv_scored": {
+          "n_pred": 15879,
+          "n_gold": 1195,
+          "tp": 1095,
+          "fp": 14784,
+          "fn": 100,
+          "precision": 0.069,
+          "recall": 0.9163,
+          "f1": 0.1283
+        },
+        "in_test": {
+          "n_pred": 15879,
+          "n_gold": 1003,
+          "tp": 919,
+          "fp": 14960,
+          "fn": 84,
+          "precision": 0.0579,
+          "recall": 0.9163,
+          "f1": 0.1089
+        }
+      },
+      "B7_accepted": {
+        "full_gold": {
+          "n_pred": 6555,
+          "n_gold": 5797,
+          "tp": 595,
+          "fp": 5960,
+          "fn": 5202,
+          "precision": 0.0908,
+          "recall": 0.1026,
+          "f1": 0.0963
+        },
+        "in_pool": {
+          "n_pred": 6555,
+          "n_gold": 2800,
+          "tp": 595,
+          "fp": 5960,
+          "fn": 2205,
+          "precision": 0.0908,
+          "recall": 0.2125,
+          "f1": 0.1272
+        },
+        "in_etv_scored": {
+          "n_pred": 6555,
+          "n_gold": 1195,
+          "tp": 595,
+          "fp": 5960,
+          "fn": 600,
+          "precision": 0.0908,
+          "recall": 0.4979,
+          "f1": 0.1535
+        },
+        "in_test": {
+          "n_pred": 6555,
+          "n_gold": 1003,
+          "tp": 451,
+          "fp": 6104,
+          "fn": 552,
+          "precision": 0.0688,
+          "recall": 0.4497,
+          "f1": 0.1193
+        }
+      }
+    },
+    "closure": {
+      "gold_is_cyclic": false,
+      "n_gold_tc": 5990,
+      "n_pred_tc": 48027,
+      "B7_in_gold_direct": 595,
+      "B7_in_gold_tc_not_direct": 0,
+      "B7_outside_gold_tc": 5960,
+      "gold_direct_in_B7_tc": 926,
+      "recall_gold_via_B7_tc": 0.1597,
+      "precision_B7_vs_gold_tc": 0.0908
+    },
+    "C6_gold_heuristic": {
+      "skipped": false,
+      "n_gold": 5797,
+      "n_reduction": 5759,
+      "n_shortcut_transitive": 38,
+      "frac_shortcut": 0.0066
+    }
+  },
+  "bootstrap": {
+    "n": 49608,
+    "n_pos": 1003,
+    "n_boot": 1000,
+    "seed": 42,
+    "conditions": {
+      "B1": {
+        "roc_auc": {
+          "mean": 0.8332,
+          "lo": 0.8203,
+          "hi": 0.8459,
+          "n": 1000
+        },
+        "pr_auc": {
+          "mean": 0.0848,
+          "lo": 0.0772,
+          "hi": 0.0928,
+          "n": 1000
+        },
+        "f1_tau": {
+          "mean": 0.1628,
+          "lo": 0.1518,
+          "hi": 0.1745,
+          "n": 1000
+        },
+        "tau": 0.5,
+        "point": {
+          "f1_tau": 0.1628,
+          "precision": 0.0944,
+          "recall": 0.5902,
+          "roc_auc": 0.8335,
+          "pr_auc": 0.0847,
+          "tau": 0.5
+        }
+      },
+      "B3": {
+        "roc_auc": {
+          "mean": 0.8857,
+          "lo": 0.8783,
+          "hi": 0.8929,
+          "n": 1000
+        },
+        "pr_auc": {
+          "mean": 0.0993,
+          "lo": 0.0917,
+          "hi": 0.1077,
+          "n": 1000
+        },
+        "f1_tau": {
+          "mean": 0.1899,
+          "lo": 0.179,
+          "hi": 0.2017,
+          "n": 1000
+        },
+        "tau": 0.55,
+        "point": {
+          "f1_tau": 0.1898,
+          "precision": 0.1091,
+          "recall": 0.7298,
+          "roc_auc": 0.8859,
+          "pr_auc": 0.0991,
+          "tau": 0.55
+        }
+      },
+      "B5": {
+        "roc_auc": {
+          "mean": 0.8791,
+          "lo": 0.8708,
+          "hi": 0.8875,
+          "n": 1000
+        },
+        "pr_auc": {
+          "mean": 0.1013,
+          "lo": 0.093,
+          "hi": 0.1107,
+          "n": 1000
+        },
+        "f1_tau": {
+          "mean": 0.2029,
+          "lo": 0.1896,
+          "hi": 0.2172,
+          "n": 1000
+        },
+        "tau": 0.55,
+        "point": {
+          "f1_tau": 0.2029,
+          "precision": 0.1224,
+          "recall": 0.5922,
+          "roc_auc": 0.8792,
+          "pr_auc": 0.1011,
+          "tau": 0.55
+        }
+      },
+      "mention": {
+        "roc_auc": {
+          "mean": 0.6201,
+          "lo": 0.6077,
+          "hi": 0.6341,
+          "n": 1000
+        },
+        "pr_auc": {
+          "mean": 0.1514,
+          "lo": 0.13,
+          "hi": 0.1753,
+          "n": 1000
+        },
+        "f1_tau": {
+          "mean": 0.3393,
+          "lo": 0.3094,
+          "hi": 0.3717,
+          "n": 1000
+        },
+        "tau": 0.5,
+        "point": {
+          "f1_tau": 0.3393,
+          "precision": 0.5556,
+          "recall": 0.2443,
+          "roc_auc": 0.6201,
+          "pr_auc": 0.151,
+          "tau": 0.5
+        }
+      }
+    }
+  },
+  "supervised": {
+    "n_train": 77507,
+    "n_val": 8611,
+    "n_test": 49608,
+    "models": {
+      "logreg": {
+        "val_best_tau": 0.3,
+        "val_f1": 0.0,
+        "f1_at_0.5": 0.0,
+        "f1_tau": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "roc_auc": 0.6287,
+        "pr_auc": 0.0437
+      },
+      "logreg_balanced": {
+        "val_best_tau": 0.35,
+        "val_f1": 0.078,
+        "f1_at_0.5": 0.08,
+        "f1_tau": 0.066,
+        "precision": 0.0357,
+        "recall": 0.4327,
+        "roc_auc": 0.6384,
+        "pr_auc": 0.0507
+      },
+      "linear_svm": {
+        "val_best_tau": 0.3,
+        "val_f1": 0.1119,
+        "f1_at_0.5": 0.0138,
+        "f1_tau": 0.1111,
+        "precision": 0.0691,
+        "recall": 0.2832,
+        "roc_auc": 0.6971,
+        "pr_auc": 0.0731
+      }
+    }
+  },
+  "s2_miss": {
+    "n_gold": 5817,
+    "n_hit": 2811,
+    "n_missed": 3006,
+    "miss_containment": 0,
+    "miss_share_bigram": 22,
+    "miss_overlap_ge_1": 1548,
+    "miss_overlap_ge_2": 0,
+    "miss_jaccard_ge_0.2": 1160,
+    "miss_same_tax2": 57,
+    "recoverable_cpu": 1175,
+    "frac_recoverable_cpu": 0.3909
+  }
+}

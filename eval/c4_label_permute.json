@@ -1,0 +1,71 @@
+{
+  "n_test": 49608,
+  "n_shuf": 20,
+  "seed": 42,
+  "conditions": {
+    "B1": {
+      "true": {
+        "roc_auc": 0.8335,
+        "pr_auc": 0.0847,
+        "base_rate": 0.0202
+      },
+      "shuffled": {
+        "n": 20,
+        "roc_auc_mean": 0.5003,
+        "roc_auc_lo": 0.4888,
+        "roc_auc_hi": 0.5096,
+        "pr_auc_mean": 0.0203,
+        "pr_auc_lo": 0.0198,
+        "pr_auc_hi": 0.0207
+      }
+    },
+    "B3": {
+      "true": {
+        "roc_auc": 0.8859,
+        "pr_auc": 0.0991,
+        "base_rate": 0.0202
+      },
+      "shuffled": {
+        "n": 20,
+        "roc_auc_mean": 0.4982,
+        "roc_auc_lo": 0.4887,
+        "roc_auc_hi": 0.5116,
+        "pr_auc_mean": 0.0202,
+        "pr_auc_lo": 0.0196,
+        "pr_auc_hi": 0.0211
+      }
+    },
+    "B5": {
+      "true": {
+        "roc_auc": 0.8798,
+        "pr_auc": 0.1011,
+        "base_rate": 0.0202
+      },
+      "shuffled": {
+        "n": 20,
+        "roc_auc_mean": 0.4987,
+        "roc_auc_lo": 0.4877,
+        "roc_auc_hi": 0.5126,
+        "pr_auc_mean": 0.0202,
+        "pr_auc_lo": 0.0197,
+        "pr_auc_hi": 0.0209
+      }
+    },
+    "mention": {
+      "true": {
+        "roc_auc": 0.6201,
+        "pr_auc": 0.151,
+        "base_rate": 0.0202
+      },
+      "shuffled": {
+        "n": 20,
+        "roc_auc_mean": 0.4997,
+        "roc_auc_lo": 0.4975,
+        "roc_auc_hi": 0.5026,
+        "pr_auc_mean": 0.0202,
+        "pr_auc_lo": 0.0202,
+        "pr_auc_hi": 0.0204
+      }
+    }
+  }
+}

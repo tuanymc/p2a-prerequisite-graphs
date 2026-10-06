@@ -1,0 +1,18 @@
+{
+  "protocol": "URI set-difference vs ESCO v1.1.1 (Tabiya transform)",
+  "v111_source": "https://raw.githubusercontent.com/tabiya-tech/tabiya-open-dataset/main/tabiya-esco-v1.1.1/csv/skills.csv",
+  "v111_n_uris": 13896,
+  "dump_n_skills": 5628,
+  "dump_n_http_uris": 5627,
+  "n_new_uris": 1,
+  "new_uris": [
+    {
+      "skill_id": "http://data.europa.eu/esco/skill/9ce18534-9fa6-49af-9521-42c1e10fe07c",
+      "label": "spectroscopy"
+    }
+  ],
+  "e_test_pairs_touching_new": 10,
+  "e_test_gold_pos_touching_new": 0,
+  "ranking_possible": false,
+  "note": "ESCO last-modifiedDate is not an introduction date (10,770 of 13,960 skills stamped 2024). A ranking test needs gold positives; this dump has none on the post-v1.1.1 URI slice."
+}

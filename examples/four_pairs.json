@@ -1,0 +1,102 @@
+[
+  {
+    "i": 55,
+    "stratum": "gold_in_pool",
+    "a": "soldering techniques",
+    "b": "apply soldering techniques",
+    "gold": "direct",
+    "span": "apply soldering techniques. Apply and work with a variety of techniques in the process of soldering, such as soft so",
+    "B1": {
+      "pab": 0.8,
+      "pba": 0.8,
+      "type": "direct"
+    },
+    "B3": {
+      "pab": 0.9,
+      "pba": 0.8,
+      "type": "direct",
+      "span": "apply soldering techniques. Apply and work with a variety of techniques in the process of soldering, such as soft soldering, silver soldering, induction soldering, re"
+    },
+    "B5": {
+      "pab": 0.9,
+      "pba": 0.8,
+      "type": "direct",
+      "span": "apply soldering techniques. Apply and work with a variety of techniques in the process of soldering, such as soft soldering, silver soldering, induction soldering, re"
+    }
+  },
+  {
+    "i": 64,
+    "stratum": "gold_in_pool",
+    "a": "types of concrete pumps",
+    "b": "install concrete pumps",
+    "gold": "direct",
+    "span": "types of concrete pumps. The types of machines used to pump liquid concrete such as the boom concrete pumps used",
+    "B1": {
+      "pab": 0.0,
+      "pba": 0.0,
+      "type": "none"
+    },
+    "B3": {
+      "pab": 0.7,
+      "pba": 0.5,
+      "type": "transitive",
+      "span": "types of concrete pumps. The types of machines used to pump liquid concrete such as the boom concrete pumps used for large construction projects or line pumps gene"
+    },
+    "B5": {
+      "pab": 0.7,
+      "pba": 0.5,
+      "type": "ambiguous",
+      "span": "types of concrete pumps. The types of machines used to pump liquid concrete such as the boom concrete pumps used for large construction projects or line pumps gene"
+    }
+  },
+  {
+    "i": 121,
+    "stratum": "candidate_none",
+    "a": "assemble mechatronic units",
+    "b": "assemble hardware components",
+    "gold": "none",
+    "span": "assemble mechatronic units. Assemble mechatronic units using mechanical, pneumatic, hydraulic, electrical, electroni",
+    "B1": {
+      "pab": 0.3,
+      "pba": 0.2,
+      "type": "ambiguous"
+    },
+    "B3": {
+      "pab": 0.7,
+      "pba": 0.5,
+      "type": "ambiguous",
+      "span": "assemble mechatronic units. Assemble mechatronic units using mechanical, pneumatic, hydraulic, electrical, electronic, and information technology systems and componen"
+    },
+    "B5": {
+      "pab": 0.6,
+      "pba": 0.4,
+      "type": "ambiguous",
+      "span": "assemble mechatronic units. Assemble mechatronic units using mechanical, pneumatic, hydraulic, electrical, electronic, and information technology systems and componen"
+    }
+  },
+  {
+    "i": 183,
+    "stratum": "gold_reverse",
+    "a": "design user interface",
+    "b": "use methodologies for user-centered design",
+    "gold": "none",
+    "span": "design user interface. Create software or device components which enable interaction between humans and systems",
+    "B1": {
+      "pab": 0.6,
+      "pba": 0.4,
+      "type": "ambiguous"
+    },
+    "B3": {
+      "pab": 0.8,
+      "pba": 0.7,
+      "type": "direct",
+      "span": "design user interface. Create software or device components which enable interaction between humans and systems or machines, using appropriate techniques, langua"
+    },
+    "B5": {
+      "pab": 0.7,
+      "pba": 0.7,
+      "type": "transitive",
+      "span": "design user interface. Create software or device components which enable interaction between humans and systems or machines, using appropriate techniques, langua"
+    }
+  }
+]
