@@ -1,0 +1,12 @@
+{
+  "protocol": "Wikidata P4644 + English Wikipedia sitelink",
+  "wd_enwiki_items": 1049,
+  "dump_http_skills": 5627,
+  "dump_with_enwiki": 523,
+  "e_test_pairs": 49608,
+  "e_test_both_mapped": 760,
+  "e_test_gold_pos": 1003,
+  "e_test_gold_pos_both_mapped": 5,
+  "ranking_possible": false,
+    "note": "Classic RefD needs Wikipedia in/out links on a concept map. Official ESCO-to-enwiki coverage on this dump leaves 5 gold positives with both ends mapped; not a ranking test."
+}
