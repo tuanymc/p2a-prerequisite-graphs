@@ -1,0 +1,1349 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% P2A manuscript for IJAIT (World Scientific, ws-ijait 2024-10-10)
+%% Honest ablation. Do not claim Reliable / contamination / pair-SOTA.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass{ws-ijait}
+
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc}
+\usepackage[sort,compress]{cite}
+\usepackage{hyperref}
+\hypersetup{colorlinks=false,allbordercolors=blue,pdfborderstyle={/S/U/W 1}}
+
+\newcommand{\pab}{p_{A\to B}}
+\newcommand{\pba}{p_{B\to A}}
+\newcommand{\Lirr}{L_{\mathrm{irr}}}
+
+\begin{document}
+
+\markboth{T.\ Do Thi, T.\ Dao Minh and A.-H.\ Dao}
+{From Pair Scores to Prerequisite Graphs on Skill-Taxonomy Descriptions}
+
+\catchline{}{}{}{}{}
+
+\title{From Pair Scores to Prerequisite Graphs\\
+on Skill-Taxonomy Descriptions}
+
+\author{Thu Do Thi}
+
+\address{Hung Yen University of Technology and Engineering\footnote{Formerly Hung Yen University of Technology and Education; renamed 3 September 2026.},
+Hung Yen, Vietnam\\
+thudt@utehy.edu.vn}
+
+\author{Tuan Dao Minh}
+
+\address{Hung Yen University of Technology and Engineering,
+Hung Yen, Vietnam\\
+tuanymc@utehy.edu.vn}
+
+\author{Anh-Hien Dao\footnote{Corresponding author.}}
+
+\address{Hung Yen University of Technology and Engineering,
+Hung Yen, Vietnam\\
+hienda@utehy.edu.vn}
+
+\maketitle
+
+\begin{history}
+\received{(Day Month Year)}
+\accepted{(Day Month Year)}
+\published{(Day Month Year)}
+\end{history}
+
+\begin{abstract}
+We present a seven-step induction tool that converts pairwise
+large language model ({LLM}) prerequisite scores into an auditable
+directed acyclic graph ({DAG}).
+The evaluation uses {ESCO-PrereqSkill} under an unseen-concept
+split (49,608 test pairs; $2.0$\% positives).
+The only documents are the {ESCO} skill cards already present in a
+labels-only prompt ({B1}).
+On \texttt{gpt-4o-mini}, repeating those cards as retrieved spans
+({B3}) raises {ROC}-{AUC} from $0.834$ to $0.886$ and {PR}-{AUC}
+from $0.085$ to $0.099$, yet lowers direction accuracy ($0.761$ to
+$0.667$).
+The same format lowers {AUC} on {Qwen} 2.5 7B ($0.803$ to
+$0.654$).
+A mention rule reaches {PR}-{AUC} $0.151$, above every standalone
+{LLM} condition; a logistic stack of mention with {B1} and the
+taxonomy prompt ({B5}) reaches $0.265$.
+Temperature scaling has no bias term, so expected calibration
+error ({ECE}) barely changes ($0.306$ to $0.299$).
+Reverse-conflict ({C2}) and cycle ({C3}) constraints on scaled
+{B5} scores yield a {DAG} of $8{,}906$ edges; {E}-test
+membership has pair {F1} $0.163$ ($332$ of $1{,}003$ gold), not
+the pair-level {B5} {F1} of $0.203$.
+Candidate generation covers $48.3$\% of gold edges.
+We report when taxonomy-card formatting and directional constraints
+help, and when they do not.
+\end{abstract}
+
+\keywords{Prerequisite graph; large language models; skill taxonomy;
+evidence retrieval; calibration; directed acyclic graph.}
+
+\section{Introduction}
+Prerequisite relations say which competence should be in place
+before another can be taught or assessed, and they therefore
+structure both learning paths and skill graphs.
+Recent pairwise predictors on educational corpora---including
+{LECDPR}\cite{Xiao_2026} and {ProPRL}\cite{Cheng_2026}---optimize a
+binary label $y_{ij}\in\{0,1\}$ on a closed-set split and stop at a
+pair score.
+{AutoPRE}\cite{Li_AutoPRE_2025} and {KnowLP}\cite{Cheng_KnowLP} already
+use large language models ({LLMs}) for concept prerequisites or dual
+prerequisite--similarity graphs.
+The question that remains is narrower and more practical.
+Once those pair scores exist, when do taxonomy-card spans,
+temperature scaling, and directional constraints turn them into a
+graph that a practitioner can audit?
+
+This paper introduces a seven-step induction tool for that
+conversion.
+We ablate each stage rather than claim that the full stack is
+reliable.
+On the public {ESCO-PrereqSkill} dump\cite{Le_2025} we score
+candidates with \texttt{gpt-4o-mini} and, separately, with {Qwen}
+2.5 7B Instruct.
+The headline protocol is the unseen-concept split of Zhu and
+Zamani:\cite{Zhu_2022} any pair that touches a held-out skill is
+reserved for test.
+Because the test positive rate is only $2.0$\%, we report
+{PR}-{AUC} together with {ROC}-{AUC}.
+Lexical baselines and a mention-plus-{LLM} stack are evaluated on
+the same candidate pool.
+A restricted 240-pair human sample is reported in its own table.
+
+The measurements support four contributions.
+\begin{romanlist}[(iv)]
+\item We formalize an edge
+$e_{ij}=(s_i,s_j,\mathcal{E}_{ij},u_{ij},q_{ij},t_{ij})$
+with four type labels and a direction, and we specify a seven-step
+pipeline whose constraints {C1}--{C5} are implemented in the
+reported run ({C6} is specified but not applied).
+\item On \texttt{gpt-4o-mini}, repeating the same {ESCO} cards
+under an Evidence heading improves ranking relative to a
+labels-only prompt (paired bootstrap $\Delta${PR}-{AUC} $0.014$,
+interval $0.009$--$0.020$).
+Adding the taxonomy path does not improve that ranking further.
+\item The same format lowers direction accuracy on
+\texttt{gpt-4o-mini} and lowers ranking on {Qwen} 2.5 7B.
+A mention rule outperforms every standalone {LLM} condition on
+{PR}-{AUC}, yet a stack of mention with {B1} and {B5} recovers
+gold edges that mention misses and raises {PR}-{AUC} from $0.151$
+to $0.265$.
+\item Graph constraints applied to temperature-scaled {B5}
+scores produce one directed acyclic graph.
+{E}-test pair {F1} for membership in that graph is $0.163$,
+which is not the pair-level {B5} operating {F1} of $0.203$.
+The gain in forward--reverse margin comes from reverse-edge
+suppression on raw scores, not from cycle breaking.
+\end{romanlist}
+
+We do not claim the first {LLM} prerequisite
+predictor,\cite{Li_AutoPRE_2025,Cheng_KnowLP}
+the first direction model, or that the graph stage outperforms
+evidence-only pair ranking under a shared validation threshold.
+A frozen zero-shot model is not trained on split {A} or split {E},
+so the absence of an {F1} drop from {A} to {E} is the expected
+outcome and is not treated as pretraining contamination.
+We do not generate learning
+paths\cite{Cheng_KnowLP,Ramachandran_2026} and we do not use student
+traces.
+The rest of the paper is organized as follows.
+Section~\ref{sec:related} reviews pairwise and taxonomy
+prerequisite work.
+Section~\ref{sec:problem} states the output graph.
+Section~\ref{sec:tool} presents the induction tool, the constraints
+{C1}--{C5}, and the ablation codes.
+Section~\ref{sec:setup} describes the {ESCO} dump, the splits, the
+models, and the author-labeled sample.
+Section~\ref{sec:results} reports pair ranking, graph recovery,
+calibration, and the open-family comparison.
+Section~\ref{sec:discussion} discusses the conditional claim;
+Section~\ref{sec:limit} states the remaining limits of the
+evidence;
+Section~\ref{sec:conclusion} concludes.
+
+\section{Related Work}
+\label{sec:related}
+
+\subsection{Pairwise prediction on educational documents}
+Early concept-prerequisite work measured Wikipedia and textbook
+signals ({RefD}),\cite{Liang_2015} recovered university course
+dependencies,\cite{Liang_2017} and learned concept graphs from
+educational click and catalog data.\cite{Yang_2015,Liu_2016}
+Later extractors target massive open online courses
+({MOOCs}),\cite{Pan_2017} online resources
+({PREREQ}),\cite{Roy_2019} joint concept extraction
+({iPRL}),\cite{Lu_2019} and course-description
+text.\cite{Xiao_2022}
+Recent supervised and graph-neural models use learning-path
+supervision ({LCPRE}),\cite{Sun_2024} directed
+{Weisfeiler}--{Leman} message passing,\cite{Zhang_2025}
+concept-pair {GNNs},\cite{Mazumder_2023} and course-map
+convolution.\cite{Xia_2023}
+{AutoPRE} uses {LLM} agents to discover concept
+prerequisites.\cite{Li_AutoPRE_2025}
+{KnowLP} builds a dual graph of prerequisite and similarity
+edges for personalized learning paths.\cite{Cheng_KnowLP}
+LectureBank\cite{Li_2019} is a slide-and-topic corpus for {NLP}
+education; the public dump we hold has topic titles only, so we
+omit it from the reported tables.
+{LECDPR}\cite{Xiao_2026} retrieves rather than generates text, then
+applies a graph neural network over concept--document interactions.
+{ProPRL}\cite{Cheng_2026} adds a behavioral view and a training loss
+$\Lirr$ that penalizes high scores in both directions.
+Retrieval-augmented generation retrieves then writes
+text;\cite{Lewis_2020} we retrieve spans and never treat
+model-written text as evidence.
+Those earlier tables do not share a protocol with ours, so we do
+not treat pair {F1} as a cross-paper ranking.
+
+\subsection{Prerequisites on skill taxonomies}
+{KnowEdu} constructs educational knowledge graphs from pedagogical
+data.\cite{Chen_2018}
+{ESCO} is the European skill classification; text-mining audits ask
+whether it tracks {Industry}~4.0.\cite{Chiarello_2021}
+Labor-market studies recover nested skill
+dependencies,\cite{Hosseinioun_2025}
+and known course prerequisites have been used to order modules toward
+jobs.\cite{Dai_2021}
+Those studies recover occupational or curricular structure; they do
+not produce a pedagogical edge with a retrieved span.
+
+Le and Abel\cite{Le_2025} released {ESCO-PrereqSkill} and compared
+zero-shot {LLMs} with expert links by generating prerequisite
+\emph{skill names} and scoring them with semantic similarity and
+{BERTScore}.
+That is a generation-and-alignment task, not directed pair
+classification on a candidate pool, so we cite their published
+numbers only as a task description and not as a row in our tables.
+A later paper by Le, Abel and Laforge\cite{Le_LBG_2026} tags
+learning resources with competencies, keeps an evidence span, and
+applies graph constraints on a competency graph.
+We score skill--skill pairs and do not tag documents.
+The two tools share the vocabulary of {LLM} scoring, evidence, and
+graph constraints, yet they solve different prediction problems.
+
+\subsection{Unseen concepts and annotation}
+Zhu and Zamani\cite{Zhu_2022} showed that closed-set splits inflate
+apparent generalization.
+We therefore treat split {E} as the headline protocol.
+Textbook annotation protocols such as {PREAP} show that agreement
+depends on explicit criteria.\cite{Alzetta_2024}
+Our 240-pair sample uses a three-annotator queue rather than
+textbook {PREAP}, and it is too small to support a selective-review
+claim.
+
+\section{Problem}
+\label{sec:problem}
+Let $V=\{s_1,\ldots,s_n\}$ be a skill set in which each node has a
+stable identifier, a label, a description, and, when present, a
+taxonomy path, and let a corpus of source documents be given.
+The output is a graph $G=(V,E)$ whose accepted edges are intended
+to be inspectable.
+Each edge carries retrieved evidence $\mathcal{E}_{ij}$ (a
+verbatim span together with a \texttt{source\_id}), a confidence
+$u_{ij}$, a type
+$t_{ij}\in\{\mathrm{direct},\mathrm{transitive},\mathrm{none},\mathrm{ambiguous}\}$,
+a direction $A\to B$, $B\to A$, or none, and an optional
+human-review state $q_{ij}$.
+
+The {LLM} is used only as a bidirectional pair scorer
+$(\pab,\pba)$.
+Each candidate pair is scored in one decoding at temperature $0$.
+The two numbers are the model's own {JSON} fields for the stored
+orientation $(\mathrm{source},\mathrm{target})$, not token
+log-probabilities, and they are discrete in steps of $0.1$.
+Text written by the model is never stored as evidence.
+The graph keeps $\mathrm{source}\to\mathrm{target}$ when scaled
+$\pab\ge\tau$ after {C2}; $\pba$ is used to detect reverse
+conflict and is not inserted as a second edge unless
+$(\mathrm{target},\mathrm{source})$ is itself a candidate.
+
+Candidate generation does not enumerate $V\times V$, so
+graph-level recall cannot exceed gold-in-pool coverage.
+We report that ceiling explicitly.
+
+\section{The Induction Tool}
+\label{sec:tool}
+
+\subsection{Seven steps}
+Figure~\ref{fig:pipeline} summarizes the tool.
+Skills are first canonicalized with stable identifiers; the
+procedure does not invent nodes ({S1}).
+Candidates are then proposed from an inverted index and from label
+signals---shared bigrams, token containment, and token overlap of
+at least two---without reading gold edges ({S2}).
+For each ordered pair, {S3} retrieves up to $k{=}4$ verbatim
+windows per direction from documents indexed by skill identifier
+or label.
+Windows are 280 characters long and are ranked by a heuristic that
+rewards order words (\texttt{before}, \texttt{requires},
+\texttt{prerequisite}) and co-mention of the other skill.
+
+{S4} scores each candidate pair in one decoding at temperature
+$0$ and requires {JSON} fields $\pab$, $\pba$, type, direction,
+\texttt{confidence\_raw}, and \texttt{evidence\_ids}.
+The system message and the three user-prompt variants appear in
+\ref{app:prompts}.
+{S5} fits temperature scaling\cite{Guo_2017} on the validation
+split.
+Platt scaling and isotonic regression were tried as pair-score
+maps; they are not used as the graph-stage map, because {C2},
+{C3}, and {C4} depend on an absolute probability scale
+($\tau$, $\mu{=}0.8$, $\lvert\pab-\pba\rvert<0.05$, and
+$c_{ij}>0.8$).
+{S6} applies the structural constraints below.
+{S7} ranks pairs for human review under random, uncertainty
+($1-\lvert 2p-1\rvert$), and high-confidence policies.
+
+\begin{figure}[th]
+\centering
+\begin{tikzpicture}[
+  x=1.20in, y=1in,
+  font=\footnotesize,
+  >=Latex,
+  card/.style={
+    draw=black!70, rounded corners=2.4pt, align=center,
+    inner sep=3.2pt, text width=0.88in, minimum height=0.46in,
+    fill=white, line width=0.55pt
+  },
+  onpath/.style={card, fill=black!8},
+  arr/.style={-{Latex[length=2.0mm,width=1.6mm]},
+    thick, draw=black!60, shorten >=1.2pt, shorten <=1.2pt},
+  rail/.style={thick, draw=black!60},
+]
+\node[onpath] (s1) at (0,1.55) {S1\\skill IDs};
+\node[onpath] (s2) at (1,1.55) {S2\\135k pairs};
+\node[onpath] (s3) at (2,1.55) {S3\\$k{=}4$ spans};
+\node[onpath] (s4) at (3,1.55) {S4 score\\$T{=}0$};
+\node[card] (b1) at (1,0.62) {B1\\labels};
+\node[card] (b3) at (2,0.62) {B3\\$+$ spans};
+\node[onpath] (b5) at (3,0.62) {B5\\$+$ taxonomy};
+\node[onpath] (s5) at (1,-0.31) {S5\\$T{=}3.3$};
+\node[onpath] (s6) at (2,-0.31) {S6\\B7 {DAG}};
+\node[onpath] (s7) at (3,-0.31) {S7\\review};
+\draw[arr] (s1) -- (s2);
+\draw[arr] (s2) -- (s3);
+\draw[arr] (s3) -- (s4);
+\coordinate (fork) at ($(s4.south)+(0,-0.18)$);
+\draw[arr] (s4.south) -- (fork);
+\draw[rail] (b1.north |- fork) -- (b5.north |- fork);
+\draw[arr] (b1.north |- fork) -- (b1.north);
+\draw[arr] (b3.north |- fork) -- (b3.north);
+\draw[arr] (b5.north |- fork) -- (b5.north);
+\coordinate (drop) at ($(b5.south)+(0,-0.16)$);
+\draw[arr] (b5.south) -- (drop);
+\draw[rail] (s5.north |- drop) -- (drop);
+\draw[arr] (s5.north |- drop) -- (s5.north);
+\draw[arr] (s5) -- (s6);
+\draw[arr] (s6) -- (s7);
+\end{tikzpicture}
+\caption{Overview of the seven-step induction tool.
+Shaded boxes mark the reported path.
+{B1}, {B3}, and {B5} are prompt variants at the scoring step
+({S4}).
+Only {B5} is temperature-scaled ({S5}) and constrained ({S6})
+into the reported {DAG}; {B6} and {B7} transform those {B5}
+scores without a further model call.
+{C4} flags edges; {C5} is never triggered on this dump.}
+\label{fig:pipeline}
+\end{figure}
+
+\subsection{Constraints C1--C6 and $\Lirr$}
+Let $\tau$ be the operating threshold and let $\mu{=}0.8$.
+The reported run implements {C1}--{C5}; {C6} is specified so that
+the type field is well defined, but it is not applied to the pair
+tables.
+\begin{itemlist}
+\item C1 (self-loop). Drop any pair with $s_i=s_j$.
+\item C2 (reverse conflict). If $\pab>\tau$ and $\pba>\tau$, flag
+the pair.
+If $\lvert\pab-\pba\rvert<0.05$, mark a direction conflict;
+otherwise suppress the weaker direction to
+$\min(p_{\mathrm{weak}},\max(0,\mu-p_{\mathrm{strong}}))$.
+\item C3 (cycles). Build a directed graph of pairs with
+$\pab\ge\tau$ after C2.
+While a strongly connected component of size greater than one
+remains, sort its internal edges by uncertainty $1-c_{ij}$, where
+$c_{ij}$ is the temperature-scaled \texttt{confidence\_raw} of
+that pair, and delete a batch of
+$k=\max(1,\min(250,\lceil m/20\rceil))$ edges ($m$ is the number
+of internal edges).
+Lowest $c_{ij}$ is deleted first.
+The procedure is batched lowest-confidence deletion, not a minimum
+feedback arc set.
+At most 80 batched rounds are run; leftover cycles, if any, are
+removed one edge at a time until the graph is acyclic.
+\item C4 (taxonomy). Flag a high-confidence pair
+($c_{ij}>0.8$, same scaled \texttt{confidence\_raw}) whose
+top-level taxonomy paths differ.
+The flag does not by itself delete the edge.
+On the reported full-pool run, {C4} flags $178$ pairs.
+\item C5 (no evidence). Flag a pair that has no retrieved span in
+either direction.
+{C5} is never triggered on this dump ({C1} self-loops $0$;
+no-evidence $0$), because every scored pair has an ontology-card
+window.
+\item C6 (type). Intended to separate direct from transitive edges
+after the graph is built.
+It is not applied in the pair tables.
+A post-hoc transitive reduction of the gold graph finds only
+$38$ shortcut edges ($0.7$\% of $5{,}797$ unique gold pairs).
+On the accepted {B7} {DAG}, $1{,}534$ of $8{,}906$ edges ($17.2$\%)
+have an alternate path after the edge is removed; only $169$ of
+those $1{,}534$ are gold-direct.
+C6 would therefore relabel a non-trivial slice of the predicted
+graph, but that slice is mostly not gold.
+A second 240-pair human sheet oversampled alternate-path candidates
+from the earlier val$+$test {DAG} of $6{,}178$ edges
+(Section~\ref{sec:human}); annotators assigned
+\texttt{transitive} only once, and never on a gold shortcut or a
+{B7} alternate-path edge.
+C6 remains a graph heuristic, not a human type.
+\end{itemlist}
+
+The quantity $\Lirr$ is not a training loss in this work: there is
+no gradient step.
+Following the irreversibility penalty of {ProPRL},\cite{Cheng_2026}
+we compute the post-hoc mean
+$\Lirr=\mathrm{mean}\max(0,\pab+\pba-\mu)$
+on gold-positive pairs in the scored set ($\mu{=}0.8$).
+{C2} is the corresponding inference rule.
+
+Reverse-conflict rate ({RCR}) is
+\[
+\mathrm{RCR}
+=\frac{\lvert\{i:\text{C2 flag}\}\rvert}
+{\lvert\{i:\pab\ge\tau\}\rvert}.
+\]
+The {C2} flag is not cleared after {C3}, so {RCR} after the graph
+is acyclic does not mean that the accepted {DAG} still contains
+two-way edges.
+The accepted graph keeps at most one direction per pair.
+On the reported full-pool run, {C2} flags $10{,}699$ pairs
+({RCR} $10{,}699/31{,}670\approx 0.338$ at scaled $\tau{=}0.55$).
+{C3} then deletes $22{,}764$ edges; after the batched pass,
+$1{,}303$ leftover cyclic edges were removed over $140$ sequential
+rounds.
+We do not interpret post-{S6} {RCR} as residual reverse edges.
+
+\subsection{Ablations}
+Table~\ref{tab:ablation} defines the conditions that we compare.
+Codes {B2} and {B4} were reserved for a lexical-only scorer and a
+supervised pair classifier in an earlier design; they were not run
+as {LLM} conditions.
+The mention and {TF}-{IDF} baselines in Section~\ref{sec:results}
+play the role that {B2} would have played.
+{B6} and {B7} are post-hoc transforms of the {B5} scores; they do
+not call the {LLM} again.
+{S4}-lite applies only {C2} to {B5} scores.
+
+\begin{table}[th]
+\tbl{Ablation conditions.
+{B6} and {B7} transform {B5} scores without a further model call.
+{B2} and {B4} were not run as {LLM} conditions.}
+{\begin{tabular}{@{}lcccc@{}}
+\toprule
+Code & Evidence & Taxonomy prompt & Calibration & Graph \\
+\colrule
+B1 & no & no & no & no \\
+B3 & yes & no & no & no \\
+B5 & yes & yes & no & no \\
+B6 & yes & yes & S5 & no \\
+B7 & yes & yes & S5 & S6 \\
+S4-lite & yes & yes & no & C2 only \\
+\botrule
+\end{tabular}}
+\label{tab:ablation}
+\end{table}
+
+\subsection{Metrics}
+At the pair level we report precision, recall, and {F1} at a
+validation-chosen threshold $\tau$, together with {F1} at the
+fixed cut $0.5$ as a diagnostic, {ROC}-{AUC}, and {PR}-{AUC}
+(average precision).
+With a $2.0$\% positive rate, {PR}-{AUC} is the ranking metric we
+emphasize.
+Direction, reported only on gold $A\to B$ pairs, is measured by
+direction accuracy ({DA}) and by the mean forward--reverse margin
+({FR}-margin, mean $\pab-\pba$).
+At the graph level we record whether the accepted graph is a
+directed acyclic graph; the numbers of {C2} flags, {C3}
+deletions, {C4} taxonomy flags, and {C5} no-evidence flags; and
+directed precision and recall of accepted edges against unique
+gold edges (full set, in-pool, and scored {Etv} subset).
+Accepted edges are also compared with the transitive closure of
+the gold graph.
+Calibration uses expected calibration error ({ECE}, ten
+equal-width bins) and {Brier} score on the {JSON} probabilities.
+Selective review reports binary accuracy against human gold on the
+leading $b$\% of the 240-pair sample.
+All {LLM} scores come from a single decoding at temperature $0$.
+Pair {ROC}-{AUC}, {PR}-{AUC}, and {F1}@$\tau$ on {E} test are
+reported with $95$\% bootstrap intervals from $1{,}000$ resamples
+of the $49{,}608$ pairs (seed $42$).
+
+\section{Experimental Setup}
+\label{sec:setup}
+
+\subsection{Data and documents}
+The primary corpus is the public {ESCO-PrereqSkill}
+dump.\cite{Le_2025}
+After conversion we have 5,628 skill nodes, 5,817 gold-edge
+records (self-loops dropped; $5{,}797$ unique directed pairs after
+collapsing $20$ duplicate rows), and 5,627 documents.
+The source paper describes 3,196 skills.
+The difference is mechanical rather than a claim of a new dataset:
+the public {CSV} has 3,759 target rows, and resolving
+prerequisite names against {ESCO} preferred and alternate labels
+adds endpoints that are not themselves target rows, producing
+5,628 nodes.
+
+Each document is the skill's own preferred label together with its
+{ESCO} description (\texttt{source\_type=ontology}).
+One unresolved name-only node has no description and no document,
+which is why there are 5,627 documents for 5,628 skills.
+Retrieved evidence is therefore a window over taxonomy text, not
+an independent textbook or lecture.
+{B3} and {B5} both see that text: {B3} as retrieved spans, {B5}
+as those spans plus the taxonomy path in the prompt, and {B1} as
+the raw label and description already present in the skill record.
+The ablation therefore concerns \emph{how} the description is
+shown, not a second corpus.
+
+Candidate generation yields $135{,}726$ pairs, and gold-in-pool
+coverage is $2{,}811/5{,}817=0.483$ gold records (unique in-pool
+gold in Table~\ref{tab:graph} is $2{,}800$ of $5{,}797$).
+Any graph built only from this pool has recall at most $0.483$
+against the full gold edge set, even before thresholding.
+
+\subsection{Splits}
+Split {A} is a random $8{:}1{:}1$ split of candidate pair
+identifiers (108,580 / 13,572 / 13,574) and is used only as a
+pair-score reference.
+Split {E} is the headline protocol.\cite{Zhu_2022}
+With seed $42$ we hold out $20$\% of the skill identifiers that
+appear in the candidate pool (1,125 skills).
+Every pair that touches a held-out skill is reserved for test
+(49,608 pairs, about $36$\% of the pool, 1,003 gold positives).
+The remaining pairs are split $90{:}10$ into train and validation
+(77,507 / 8,611).
+We do not train a scorer on the 135,726-pair pool, and we do not
+train the graph networks of {LECDPR} or {ProPRL}.
+A frozen zero-shot scorer never sees split-{A} training pairs, so
+split membership cannot change its parameters.
+
+\subsection{Models and decoding}
+The headline family is \texttt{gpt-4o-mini}, scored under {B1},
+{B3}, and {B5} on {E} validation and {E} test; {B5} is also
+scored on the $77{,}507$ {E}-train pairs that enter the reported
+graph.
+The open family is {Qwen} 2.5 7B Instruct, served through an
+{OpenAI}-compatible {API} and scored under the same three prompts
+on {E} validation and {E} test.
+Decoding temperature is $0$, and the probabilities are the {JSON}
+fields $\pab$ and $\pba$.
+The two families are reported in separate test tables.
+Token use and wall-clock time appear in \ref{app:cost}.
+
+\subsection{Lexical baselines}
+On the same 49,608 {E}-test pairs we score three non-{LLM} rules:
+Jaccard overlap of label-and-description tokens (the {S2}
+similarity field); {TF}-{IDF} cosine of the same text (unigrams
+and bigrams); and a directed mention rule that returns $1$ if the
+source preferred label occurs in the target description and $0$
+otherwise.
+The mention rule is a diagnostic of surface overlap in the dump,
+not a pedagogical oracle.
+Many gold links in {ESCO-PrereqSkill} pair a knowledge label with
+an action that names that label---for example, \emph{musical
+notation} before \emph{transcribe ideas into musical notation}.
+A supervised pair classifier is fit only on {E}-train pairs
+($77{,}507$ rows, $1{,}605$ positives).
+The document is the concatenation of the two skill texts with a
+separator; the vectorizer is {TF}-{IDF} unigrams and bigrams
+($80{,}000$ features) fit on train only.
+We report an unweighted logistic regression, a class-balanced
+logistic regression, and a linear {SVM}.
+The validation split chooses $\tau$; the test split is unused
+until the final row.
+
+Classic {RefD}\cite{Liang_2015} needs Wikipedia in- and out-links.
+An official {Wikidata} {P4644} map yields 523 of our 5,627
+{http} skills with an English Wikipedia sitelink, but only 760
+{E}-test pairs and five gold positives have both endpoints
+mapped, so a Wikipedia {RefD} ranking is not available on this
+dump.
+Two structural substitutes are scored on the same {E}-test pairs.
+A taxonomy-prefix score is nearly vacuous: $5{,}627$ of $5{,}628$
+skills have a path of length exactly two, and gold edges often
+cross those two top-level branches ({AUC} $0.163$, {PR}-{AUC}
+$0.020$).
+A mention-graph analog of {RefD}---the related set is the skills
+whose description contains the other label, after labels shorter
+than six characters are dropped---reaches {PR}-{AUC} $0.141$ and
+{F1} $0.311$ at $\tau{=}0.05$.
+That construction is the mention rule in other clothing, not a
+second corpus, and it does not outperform the one-line mention
+check.
+
+\subsection{Human sample}
+\label{sec:human}
+Two annotators and one adjudicator---the three authors---labeled
+240 pairs with
+$\{0,1,2,3\}$ (none, direct, transitive, ambiguous) plus a
+direction, without seeing gold or model scores.
+Cohen's $\kappa$ on the 80-pair overlap is therefore in-lab
+author agreement, not an independent-rater estimate.
+The sheet showed labels, descriptions, taxonomy paths, and
+retrieved spans.
+Sampling (seed $42$) mixed 80 overlapping pairs for agreement,
+80 unique pairs per annotator, and a 15-pair calibration block
+drawn from a 200-pair stratified inspect set.
+The overlapping block itself mixed uncertainty, random,
+gold-positive, and {C2}-flagged pairs.
+On those 80 overlapping pairs the raw agreement is $0.875$ and
+Cohen's $\kappa$ is $0.79$.
+The adjudicated gold has 151 none, 58 direct, 31 ambiguous, and
+0 transitive labels.
+For binary metrics we treat direct as positive and both none and
+ambiguous as negative ($n_{+}{=}58$).
+
+A second 240-pair sheet (seed $42$, no overlap with the first)
+oversampled the 38 gold shortcuts and the {B7} edges that have an
+alternate path, and required an intermediate skill name whenever
+the label was \texttt{transitive}.
+Raw agreement on the new 80-pair overlap is $0.812$ and
+$\kappa{=}0.72$.
+The adjudicated labels are 81 none, 77 direct, 81 ambiguous, and
+1 transitive.
+None of the 31 gold shortcuts in that sheet, and none of the 160
+{C6}-oversampled pairs, received a human \texttt{transitive}
+label.
+The single transitive sits on a gold-direct pair without a {B7}
+alternate path.
+The type field $t_{ij}$ is therefore still not scored as a
+four-way classifier: the human prior on \texttt{transitive} is
+near zero even under oversampling, so {C6} cannot be checked as a
+type detector.
+Accuracy at budget $b$ is binary accuracy of the pair score at
+threshold $0.5$ against this human gold, computed only on the
+leading $\lfloor 0.01\,b\cdot 240\rfloor$ pairs under a ranking
+policy.
+At $b{=}10$ that slice has 24 pairs; a gap of $0.012$ is smaller
+than one pair and is not a statistical claim.
+
+\section{Results}
+\label{sec:results}
+Pair scores in this section come from a single temperature-zero
+decoding of each named condition on the held-out split.
+A 50-pair connectivity check and a 200-pair inspect set used
+during development are excluded from the test tables.
+
+\subsection{Pair ranking on ESCO split E}
+Table~\ref{tab:esco-test} is the headline comparison.
+On \texttt{gpt-4o-mini}, presenting the skill cards as retrieved
+spans raises {ROC}-{AUC} from $0.834$ to $0.886$ and {PR}-{AUC}
+from $0.085$ to $0.099$.
+Inserting the taxonomy path on top of those spans does not improve
+either ranking metric beyond {B3}.
+{F1} at the fixed cut $0.5$ falls from {B1} to {B3} because the
+spans make the model attach edges too densely (recall $0.98$,
+precision $0.041$).
+That cut is the wrong operating point under a $2$\% positive
+rate, and it is not used as the headline metric.
+
+Validation-chosen {F1} is available for every {LLM} condition.
+For {B1}, temperature scaling on validation keeps $\tau{=}0.5$
+and test {F1} remains $0.163$.
+For {B3} and {B5}, the same step followed by $\tau{=}0.55$ yields
+test {F1} $0.190$ and $0.203$.
+The reported graph condition, {B7}, starts from those {B5}
+scores, rescales both $\pab$ and $\pba$ with $T{=}3.3$, and then
+applies the reverse-conflict and cycle constraints.
+Pair-level {B5} {F1}@$\tau$ ($0.203$, recall $0.593$) thresholds
+temperature-scaled \texttt{confidence\_raw} on the $49{,}608$
+{E}-test rows.
+Table~\ref{tab:graph} uses a different predicate: membership in
+the directed edge set with scaled $\pab\ge 0.55$ after {C2}.
+On that edge set, test recall is $0.886$ ($889$ of $1{,}003$).
+After {C3}, $332$ of those gold test edges remain, so
+{E}-test pair {F1} for {DAG} membership is $0.163$ (precision
+$0.108$, recall $0.331$, $3{,}079$ test pairs inside the
+{DAG}).
+The two {F1} figures are therefore not a before-and-after of one
+cut.
+A further diagnostic, {S4}-lite, applies only {C2} to raw {B5}
+scores ({F1} $0.126$) and is not used as an operating point.
+
+The mention rule reaches {PR}-{AUC} $0.151$ and
+{F1}@$0.5{=}0.339$, above every standalone {LLM} condition on
+this dump.
+{TF}-{IDF} cosine is a strong {ROC} ranker ({AUC} $0.808$) but a
+weak precision--recall ranker ({PR}-{AUC} $0.070$).
+Jaccard overlap is near chance.
+A linear {SVM} on concatenated skill text, fit on {E} train,
+reaches {PR}-{AUC} $0.073$ and {F1}@$\tau{=}0.30$ of $0.111$.
+Unweighted logistic regression never predicts a positive on
+validation ({F1} $0$); class-weighted logistic regression reaches
+only {PR}-{AUC} $0.051$.
+Neither supervised model outperforms the mention rule, or {B3}
+and {B5}, on {PR}-{AUC}.
+The mention-graph {RefD} analog ({PR}-{AUC} $0.141$) stays just
+below mention, and the taxonomy-prefix score is worse than chance.
+
+A binary union---mention or {B5} at $\tau{=}0.55$---is the wrong
+hybrid: it raises recall to $0.616$ but drops precision to
+$0.126$ and {PR}-{AUC} to $0.085$.
+The useful combination is a logistic stack fit on validation
+(mention, raw {B1} score, raw {B5} score).
+That stack reaches {PR}-{AUC} $0.265$ and {ROC}-{AUC} $0.896$;
+at the validation {F1} cut $\tau{=}0.15$ it has precision
+$0.458$, recall $0.256$, and {F1} $0.328$.
+The stack therefore wins on ranking, not at the operating point:
+mention {F1}@$0.5$ remains higher ($0.339$).
+The stack weights and $\tau$ were chosen on the same $8{,}611$-pair
+validation split; a cross-validated stack is not reported.
+{B5} at $\tau{=}0.55$ recovers $373$ of the $758$ gold test edges
+that mention misses, while mention alone keeps $24$ gold edges
+that {B5} drops.
+At the mention recall of $0.244$, mention precision is $0.556$ and
+{B5} precision is only $0.131$; the stack sits at $0.519$.
+Precision at $100$ and at $1{,}003$ follows the same order
+(stack $0.65$ / $0.32$, mention $0.53$ / $0.26$, {B5} $0.07$ /
+$0.13$).
+The ranking gain of {B3} over {B1} is therefore real on
+\texttt{gpt-4o-mini} and still smaller, in standalone {PR}-{AUC},
+than mention.
+The {LLM} scores become useful for ranking only after they are
+combined with that rule.
+
+A shuffled-card placebo isolates format from content.
+On a gold-complete {E}-test sample (all $1{,}003$ positives and
+$4{,}012$ random negatives; prevalence $20$\%), {B3} with the
+true skill cards has {ROC}-{AUC} $0.887$ and {PR}-{AUC} $0.562$.
+The same prompt with evidence taken from another pair drops to
+$0.685$ / $0.394$, below labels-only {B1} on that sample
+($0.836$ / $0.506$).
+Repeating the matched {ESCO} card under an Evidence heading
+improves ranking; a mismatched card lowers both metrics.
+Those three rows are reported separately from
+Table~\ref{tab:esco-test} because the sample prevalence is not
+$2$\%.
+
+Table~\ref{tab:ci} gives $95$\% bootstrap intervals.
+Independent intervals for {B3} and {B1} {PR}-{AUC} nearly touch
+($0.077$--$0.093$ versus $0.092$--$0.108$).
+A paired bootstrap of the difference on the same $49{,}608$ pairs
+gives $\Delta${ROC}-{AUC} $0.052$ ($0.043$--$0.062$) and
+$\Delta${PR}-{AUC} $0.014$ ($0.009$--$0.020$); both differences
+are positive in all $1{,}000$ resamples.
+The mention interval ($0.130$--$0.175$) stays above every
+standalone {LLM} interval.
+{B5} {F1}@$\tau$ ($0.190$--$0.217$) overlaps {B3}
+($0.179$--$0.202$), so the $0.203$ versus $0.190$ gap is not a
+stable ranking win.
+
+\begin{table}[th]
+\tbl{\texttt{gpt-4o-mini}, lexical rules, and a linear {SVM} on
+{ESCO} split E test (49,608 pairs, 1,003 positives).
+{F1} at $0.5$ is a diagnostic.
+{F1}@$\tau$ uses the validation-chosen cut after temperature
+scaling, except S4-lite (raw B5 at $0.55$), the mention rule
+(binary, $\tau{=}0.5$), the stack (validation {F1} sweep), and
+the {SVM} (validation {F1} sweep).
+Lexical and {SVM} rows have no temperature step.
+{B7} {F1}@$\tau$ is {E}-test pair membership in the reported
+{DAG} ($3{,}079$ of $49{,}608$ pairs), not graph-level {F1} on
+all $8{,}906$ edges.
+{B7} {DA} is the score-level figure on all gold test pairs
+($0.715$, equal to {B5}); on the $332$ gold test edges inside
+the {DAG} it is $0.569$.}
+{\begin{tabular}{@{}lcccccc@{}}
+\toprule
+Condition & F1@$0.5$ & F1@$\tau$ & $\tau$ & {AUC} & {PR}-{AUC} & {DA} \\
+\colrule
+Mention (label in desc.) & $0.339$ & $0.339$ & $0.50$ & $0.620$ & $0.151$ & --- \\
+{TF}-{IDF} cosine & $0.044$ & --- & --- & $0.808$ & $0.070$ & --- \\
+Jaccard tokens & $0.005$ & --- & --- & $0.564$ & $0.027$ & --- \\
+B1 labels only & $0.163$ & $0.163$ & $0.50$ & $0.834$ & $0.085$ & $\mathbf{0.761}$ \\
+B3 $+$ spans & $0.079$ & $0.190$ & $0.55$ & $0.886$ & $0.099$ & $0.667$ \\
+B5 $+$ taxonomy & $0.071$ & $0.203$ & $0.55$ & $0.880$ & $0.101$ & $0.715$ \\
+Stack mention$+$B1$+$B5 & --- & $\mathbf{0.328}$ & $0.15$ & $\mathbf{0.896}$ & $\mathbf{0.265}$ & --- \\
+B7 $+$ {DAG} & --- & $0.163$ & $0.55$ & --- & --- & $0.715$ \\
+S4-lite B5$+$C2 (raw) & --- & $0.126$ & $0.55$ & --- & --- & --- \\
+Linear {SVM} ({TF}-{IDF}) & $0.014$ & $0.111$ & $0.30$ & $0.697$ & $0.073$ & --- \\
+\botrule
+\end{tabular}}
+\label{tab:esco-test}
+\end{table}
+
+\begin{table}[th]
+\tbl{Bootstrap $95$\% intervals on {E} test ($1{,}000$ resamples,
+seed $42$).
+Point estimates match Table~\ref{tab:esco-test}.
+The {B5} {AUC} interval is centered at $0.879$ rather than the
+$0.880$ in that table because eight initially failed requests
+were scored as zero in the bootstrap file.}
+{\begin{tabular}{@{}lccc@{}}
+\toprule
+Condition & {AUC} & {PR}-{AUC} & F1@$\tau$ \\
+\colrule
+Mention & $[0.608,0.634]$ & $[0.130,0.175]$ & $[0.309,0.372]$ \\
+B1 & $[0.820,0.846]$ & $[0.077,0.093]$ & $[0.152,0.175]$ \\
+B3 & $[0.878,0.893]$ & $[0.092,0.108]$ & $[0.179,0.202]$ \\
+B5 & $[0.871,0.888]$ & $[0.093,0.111]$ & $[0.190,0.217]$ \\
+\botrule
+\end{tabular}}
+\label{tab:ci}
+\end{table}
+
+{B1} {F1} is $0.163$ on {E} and $0.156$ on {A}.
+Because {B1} is a frozen zero-shot scorer, the two splits cannot
+change its weights, and the absence of a drop is the expected
+outcome rather than a membership test.
+We do not read it as pretraining contamination.
+A check that the ranking metrics can fail is label permutation of
+the {E}-test scores (20 shuffles, seed $42$).
+{ROC}-{AUC} falls to $0.50$ (interval $0.49$--$0.51$) and
+{PR}-{AUC} falls to the $2.0$\% base rate for {B1}, {B3}, {B5},
+and the mention rule.
+That diagnostic shows that the metrics respond to destroyed
+labels; it is not a membership test.
+A post-cutoff concept slice is not available on this dump.
+{ESCO} v1.2 (May 2024) is after the October 2023 knowledge cutoff
+of \texttt{gpt-4o-mini}, but a {URI} set-difference of our 5,627
+{http} skills against the public {ESCO} v1.1.1 list (September
+2022) yields one new identifier, ten {E}-test pairs, and zero
+gold positives.
+Last-modified dates in the current {ESCO} {CSV} cannot replace
+that test: 10,770 of 13,960 skills carry a 2024 stamp after the
+v1.2 republish.
+
+\subsection{Worked pairs}
+Table~\ref{tab:examples} shows four inspect pairs from the
+split-{E} scores that are not in the 240-pair human sheet.
+Probabilities are the {JSON} fields $\pab/\pba$, not token
+log-probabilities.
+Spans are the first retrieved $A\to B$ window (character limit
+280).
+
+The mention pattern is already easy without retrieval:
+\emph{soldering techniques} before \emph{apply soldering techniques}
+is $0.8/0.8$ under {B1} and only slightly higher under {B3} and
+{B5}, with both directions high.
+Evidence can also rescue a gold pair that {B1} misses:
+\emph{types of concrete pumps} before \emph{install concrete pumps}
+moves from $0.0/0.0$ to $0.7/0.5$.
+The same spans inflate a same-verb distractor
+(\emph{assemble mechatronic units} / \emph{assemble hardware
+components}, gold none) from $0.3/0.2$ to $0.7/0.5$, and they raise
+both directions on a gold-reverse pair
+(\emph{design user interface} before
+\emph{use methodologies for user-centered design}).
+The four rows are illustrations, not a sample statistic.
+
+\begin{table}[th]
+\tbl{Four inspect pairs scored on split E.
+Values are $\pab/\pba$. None of the four pairs is in the 240-pair
+human sheet.}
+{\begin{tabular}{@{}p{4.85in}@{}}
+\toprule
+\textbf{P1.} \emph{soldering techniques} $\to$
+\emph{apply soldering techniques}.
+Gold: direct (label containment).
+Span: ``apply soldering techniques. Apply and work with a variety
+of techniques in the process of soldering, such as soft soldering,
+silver soldering, induction soldering\ldots''
+B1 $0.8/0.8$; B3 $0.9/0.8$; B5 $0.9/0.8$. \\
+\colrule
+\textbf{P2.} \emph{types of concrete pumps} $\to$
+\emph{install concrete pumps}.
+Gold: direct.
+Span: ``types of concrete pumps. The types of machines used to pump
+liquid concrete such as the boom concrete pumps used for large
+construction projects or line pumps\ldots''
+B1 $0.0/0.0$; B3 $0.7/0.5$; B5 $0.7/0.5$. \\
+\colrule
+\textbf{P3.} \emph{assemble mechatronic units} $\to$
+\emph{assemble hardware components}.
+Gold: none (same verb, different object).
+Span: ``assemble mechatronic units. Assemble mechatronic units using
+mechanical, pneumatic, hydraulic, electrical, electronic, and
+information technology systems and componen[ts]\ldots''
+B1 $0.3/0.2$; B3 $0.7/0.5$; B5 $0.6/0.4$. \\
+\colrule
+\textbf{P4.} \emph{design user interface} $\to$
+\emph{use methodologies for user-centered design}.
+Gold: none (reverse of an ontology edge).
+Span: ``design user interface. Create software or device components
+which enable interaction between humans and systems or machines,
+using appropriate techniques\ldots''
+B1 $0.6/0.4$; B3 $0.8/0.7$; B5 $0.7/0.7$. \\
+\botrule
+\end{tabular}}
+\label{tab:examples}
+\end{table}
+
+\subsection{Error patterns}
+A stratified read of 200 inspect pairs, together with an automatic
+audit of the $3{,}006$ gold edges that S2 never proposed, shows
+three recurring patterns.
+
+\emph{Containment and mention.}
+Many gold $A\to B$ edges pair a knowledge label with an action that
+names that label (\emph{soldering techniques} /
+\emph{apply soldering techniques}; \emph{musical notation} /
+\emph{transcribe ideas into musical notation}).
+The mention baseline in Table~\ref{tab:esco-test} is strong because
+the dump is written that way, not because surface overlap is a
+theory of pedagogy.
+The current candidate generator already uses token containment:
+an automatic miss audit finds $0$ remaining gold edges whose one
+label is a token-subset of the other, $22$ missed edges that share
+a bigram, and $1{,}548$ missed edges with at least one overlapping
+token.
+Adding those $1{,}548$ single-token pairs to the current pool
+would raise gold coverage from $0.483$ to $0.749$.
+The leftover misses are mostly same-domain, low-overlap pairs
+(\emph{computer programming} / \emph{use concurrent programming};
+\emph{toxicology} / \emph{perform toxicological studies}).
+
+\emph{Same verb, different object.}
+Candidate negatives often share a verb and differ in the object
+(\emph{assemble mechatronic units} /
+\emph{assemble hardware components};
+\emph{process returned timber products} /
+\emph{process dairy farm products}).
+B1 is usually conservative on those pairs.
+B3 and B5 raise $\pab$ when the retrieved window repeats the shared
+verb, which is the density problem behind the drop in {F1}@$0.5$.
+
+\emph{Reverse action $\to$ knowledge.}
+Ontology gold, when it exists, is typically knowledge before
+action.
+The reverse pair is labeled none.
+Models still assign mass in both directions once a shared span is
+shown (P4 in Table~\ref{tab:examples}).
+C2 is meant to suppress the weaker side of that conflict; it does
+not invent the missing gold direction.
+
+\subsection{Direction and structure}
+Evidence lowers direction accuracy on gold $A\to B$ pairs:
+{B1} $0.761$, {B5} $0.715$, {B3} $0.667$
+({FR}-margin $0.178$, $0.123$, $0.126$).
+On the reported scaled path, {B5} produces 10,699 {C2} flags.
+{C3} then deletes 22,764 edges and leaves a {DAG} of 8,906
+accepted edges.
+{C4} flags 178 high-confidence pairs whose top-level taxonomy
+paths differ and does not delete them; {C5} flags none.
+Score-level direction accuracy of {B7} equals that of {B5}
+($0.715$), because temperature scaling is monotone.
+Restricted to the $332$ gold test edges that remain in the {DAG},
+direction accuracy falls to $0.569$.
+The raw forward--reverse margin stays $0.123$; the $0.395$ figure
+belongs to {S4}-lite ({C2} on raw $\pab$ and $\pba$) and is not a
+property of the scaled {DAG}.
+The graph stage therefore yields acyclicity; it does not improve
+pair {F1}.
+
+\subsection{Graph-level recovery}
+The accepted {DAG} is induced from the $135{,}726$ scored {E}
+train, validation, and test pairs.
+Of $1{,}605$ in-pool train gold edges, $501$ appear in {B7}.
+Table~\ref{tab:graph} therefore reports three gold denominators
+on the $5{,}797$ unique directed gold pairs, all computed from
+the same temperature-scaled {B5} scores.
+
+{B7} keeps $8{,}906$ edges with precision $0.100$ against unique
+gold.
+Recall is $0.154$ on the full gold set, $0.318$ on gold-in-pool,
+$0.326$ on the {Etv} gold subset ($389$ of $1{,}195$), and
+$0.331$ on {E} test ($332$ of $1{,}003$).
+Scoring the train pairs raises full-gold and pool recall relative
+to the validation-and-test {DAG} ($0.096$ / $0.199$), but {C3}
+on the denser graph lowers {Etv} recall from $0.465$ to $0.326$
+and test recall from $0.423$ ($424$ true positives) to $0.331$.
+{B5} at scaled $\pab\ge 0.55$ after {C2}, before cycle breaking,
+is denser ($31{,}670$ directed edges) and recovers more gold
+(recall $0.423$ full / $0.875$ in-pool / $0.886$ test) at lower
+precision ($0.077$).
+The $0.483$ {S2} ceiling still bounds any graph built only from
+this pool; {B7} reaches $0.318$ of gold-in-pool because {C3}
+deletes true positives.
+If {S2} also kept label pairs that share a single token, coverage
+would rise to $0.749$ ($4{,}359$ of $5{,}817$ gold edges) at about
+$562$k directed pairs---a larger pool, not a free gain.
+
+Of the $8{,}016$ {B7} edges that miss gold-direct, only three sit
+on the gold transitive closure: they are not correct merely by
+being transitive.
+The closure of {B7} does reach $1{,}219$ gold edges ($0.210$ of
+unique gold), so some missed gold links are implied by predicted
+paths.
+The gold graph itself is already nearly reduced: only $38$ of
+$5{,}797$ unique gold edges are transitive shortcuts ($0.7$\%).
+That is why {C6}, had it been applied, would rarely relabel a gold
+edge on this dump.
+
+\begin{table}[th]
+\tbl{Directed graph recovery from one full-pool run
+($135{,}726$ scored pairs; $5{,}797$ unique gold).
+{B5}@$\tau$ is scaled $p_{A\to B}\ge 0.55$ after {C2}, before
+{C3}.
+{B7} is the accepted {DAG} on the same scores.
+{R} test uses the $1{,}003$ gold {E}-test edges
+($889$ and $332$ true positives).
+This is not the pair-level {B5} recall $0.593$ in
+Table~\ref{tab:esco-test}, which thresholds scaled
+\texttt{confidence\_raw}.}
+{\begin{tabular}{@{}lcccccc@{}}
+\toprule
+Graph & $\lvert E\rvert$ & Prec. & R full & R pool & R {Etv} & R test \\
+\colrule
+B5@$\tau$ (directed) & $31{,}670$ & $0.077$ & $0.423$ & $0.875$ & $0.884$ & $0.886$ \\
+B7 accepted {DAG} & $8{,}906$ & $0.100$ & $0.154$ & $0.318$ & $0.326$ & $0.331$ \\
+\botrule
+\end{tabular}}
+\label{tab:graph}
+\end{table}
+
+\subsection{Calibration}
+Table~\ref{tab:cal} reports {ECE} and {Brier} score on {E} test.
+{B1} is already the best-calibrated {JSON} scorer ({ECE}
+$0.086$).
+Temperature scaling makes {B1} worse ({ECE} $0.109$).
+On {B3} and {B5} the same step moves {ECE} from $0.282$ to
+$0.273$ and from $0.306$ to $0.299$.
+That flatness is expected: temperature scaling divides the logit
+by $T$ and has no intercept, so it cannot undo a systematic
+over-positive mean when the base rate is $2$\%.
+On {B5}, Murphy resolution falls from $0.0011$ to $0.0005$ while
+reliability stays large ($0.160$ to $0.141$).
+Platt scaling and three-parameter beta calibration add a bias
+term and drive {ECE} to $0.0015$ and $0.0014$ by mapping almost
+every score to the $2$\% base rate (resolution $0.0003$ and
+$0$).
+Because those maps are monotone, a threshold rechosen on
+validation would leave pair {F1} and {AUC} unchanged.
+We therefore do not reject Platt as a pair-ranking calibrator.
+We still keep temperature scaling as the implemented {S5} step
+for the graph: {C2}, {C3}, and {C4} use absolute cutoffs
+($\tau{=}0.55$, $\mu{=}0.8$, $\lvert\pab-\pba\rvert<0.05$,
+$c_{ij}>0.8$), and a map that collapses to the base rate makes
+those constants meaningless.
+The {JSON} scores themselves are discrete in steps of $0.1$, so
+many pairs share a rank; that granularity affects {ECE}, {AUC},
+and the order in which {C3} deletes edges.
+The calibration stage does not support the phrase
+``uncertainty-calibrated'' as an empirical claim.
+
+\begin{table}[th]
+\tbl{Calibration on {ESCO} split E test. Temperature $T$ is fit on
+validation. Probabilities are {JSON} fields, not log-probabilities.}
+{\begin{tabular}{@{}lcccc@{}}
+\toprule
+Condition & $T$ & {ECE} raw & {ECE} cal. & {Brier} raw / cal. \\
+\colrule
+B1 & $3.2$ & $\mathbf{0.086}$ & $0.109$ & $0.055$ / $0.064$ \\
+B3 & $3.9$ & $0.282$ & $0.273$ & $0.174$ / $0.146$ \\
+B5 & $3.3$ & $0.306$ & $0.299$ & $0.178$ / $0.160$ \\
+\botrule
+\end{tabular}}
+\label{tab:cal}
+\end{table}
+
+\subsection{Open family}
+Table~\ref{tab:qwen-val} compares the two families on the same {E}
+validation split (8,611 pairs).
+On {Qwen}, evidence lowers {AUC} from $0.814$ to $0.652$; {B5}
+recovers part of that drop ($0.710$) but does not outperform
+{B1}.
+Direction accuracy moves in the opposite direction of ranking
+({DA} $0.839$ to $0.943$).
+
+Table~\ref{tab:qwen-test} is the matching {Qwen} {E}-test run
+(49,608 pairs).
+The pattern repeats: {AUC} falls from $0.803$ ({B1}) to $0.654$
+({B3}); {B5} recovers to $0.696$ and still stays below {B1}.
+{PR}-{AUC} follows the same order ($0.062$, $0.032$, $0.036$),
+while {DA} rises ($0.809$ to $0.908$ to $0.947$).
+Whether retrieved cards help ranking is therefore
+family-dependent; the \texttt{gpt-4o-mini} test numbers remain
+in Table~\ref{tab:esco-test}.
+
+\begin{table}[!ht]
+\tbl{{ESCO} split {E} validation (8,611 pairs); {F1} at $0.5$.}
+{\begin{tabular}{@{}lcc@{}}
+\toprule
+ & {Qwen} {F1} / {AUC} / {DA} & mini {F1} / {AUC} / {DA} \\
+\colrule
+B1 & $0.067$ / $\mathbf{0.814}$ / $0.839$ & $\mathbf{0.166}$ / $0.832$ / $0.750$ \\
+B3 & $0.045$ / $0.652$ / $0.901$ & $0.083$ / $\mathbf{0.874}$ / $0.641$ \\
+B5 & $0.044$ / $0.710$ / $\mathbf{0.943}$ & $0.076$ / $0.864$ / $0.708$ \\
+\botrule
+\end{tabular}}
+\label{tab:qwen-val}
+\vspace{6pt}
+\tbl{{Qwen} 2.5 7B on {ESCO} split {E} test (49,608 pairs);
+{F1} at $0.5$.}
+{\begin{tabular}{@{}lcccc@{}}
+\toprule
+Condition & F1@$0.5$ & {AUC} & {PR}-{AUC} & {DA} \\
+\colrule
+B1 labels only & $\mathbf{0.061}$ & $\mathbf{0.803}$ & $\mathbf{0.062}$ & $0.809$ \\
+B3 $+$ spans & $0.041$ & $0.654$ & $0.032$ & $0.908$ \\
+B5 $+$ taxonomy & $0.040$ & $0.696$ & $0.036$ & $\mathbf{0.947}$ \\
+\botrule
+\end{tabular}}
+\label{tab:qwen-test}
+\end{table}
+
+\subsection{Human sample}
+On 240 human labels, uncertainty sampling reaches accuracy $0.808$
+versus random $0.796$ at a ten percent budget (24 pairs).
+High-confidence sampling reaches $0.813$.
+The gaps are smaller than one pair and are not interpreted as a
+gain for selective review.
+
+Table~\ref{tab:human} compares the same scores with those 240
+labels.
+The slice is denser in positives (58 of 240) than the ontology.
+{B3}, {B5}, and {Qwen}-{B3} have recall $1.0$ at threshold
+$0.5$.
+Human {PR}-{AUC} favors {B5} ($0.748$) over {B1} ($0.634$), which
+matches the ranking pattern of \texttt{gpt-4o-mini} and does not
+replace Table~\ref{tab:esco-test}.
+
+\begin{table}[th]
+\tbl{Same 240 author-labeled pairs (positive $=$ direct; none and
+ambiguous $=$ negative).
+Not a substitute for Table~\ref{tab:esco-test}.}
+{\begin{tabular}{@{}lcccc@{}}
+\toprule
+Condition & F1@$0.5$ & F1@$0.55$ & {AUC} & {PR}-{AUC} \\
+\colrule
+mini B1 & $\mathbf{0.714}$ & $\mathbf{0.768}$ & $0.872$ & $0.634$ \\
+mini B3 & $0.435$ & $0.641$ & $0.899$ & $0.612$ \\
+mini B5 & $0.494$ & $0.699$ & $\mathbf{0.949}$ & $\mathbf{0.748}$ \\
+{Qwen} B3 & $0.395$ & $0.459$ & $0.720$ & $0.550$ \\
+\botrule
+\end{tabular}}
+\label{tab:human}
+\end{table}
+
+\section{Discussion}
+\label{sec:discussion}
+The measurements support a conditional claim about this dump.
+Repeating an {ESCO} skill card under an Evidence heading helps
+\texttt{gpt-4o-mini} rank pairs and lowers its direction accuracy.
+The same format lowers {Qwen} ranking on both validation and the
+49,608-pair test set.
+Every one of the 49,608 {B3} test spans is the card of skill $A$
+or $B$, so there is no independent corpus.
+A shuffled-card control still matters: on a gold-complete
+subsample the matched card outperforms {B1}, and a card from
+another pair falls below {B1}.
+The gain is therefore not a generic Evidence heading.
+That is why {B3} and {B5} can look alike, and why a mention rule
+is strong.
+
+Standalone {LLM} {PR}-{AUC} stays below mention ($0.151$;
+bootstrap $0.130$--$0.175$ versus at most $0.093$--$0.111$ for
+{B5}).
+A linear {SVM} on concatenated {TF}-{IDF} also stays below mention
+({PR}-{AUC} $0.073$).
+The {LLM} scores still add edges that mention never sees: a
+validation-fit stack of mention with {B1} and {B5} reaches
+{PR}-{AUC} $0.265$ and recovers 373 gold test edges that the
+rule misses.
+The stack wins on ranking, not at the operating cut (mention
+{F1} $0.339$ versus stack {F1} $0.328$).
+The reported {DAG} is induced from scaled {B5}, not from the
+stack: {B1} was scored only on validation and test, so a
+full-pool stack graph is not available.
+Temperature scaling is implemented and almost flat, as a no-bias
+map must be at a $2$\% base rate.
+Directional constraints applied to the same scaled {B5} scores
+produce a {DAG} of $8{,}906$ edges.
+{E}-test pair {F1} for membership in that {DAG} is $0.163$,
+which is not the pair-level {B5} {F1} of $0.203$.
+The {DAG} recovers $15.4$\% of unique gold edges ($31.8$\% of
+gold-in-pool) at precision $0.100$; its closure reaches $21.0$\%
+of unique gold.
+
+Two properties of the data still bound every graph claim.
+{S2} covers $48.3$\% of gold edges, so a perfect classifier on
+the current pool would still miss more than half of the ontology;
+adding single-token label overlap would raise that ceiling to
+$74.9$\% at a much larger pool.
+The 5,627 documents are {ESCO} descriptions of the same skills.
+
+The 240-pair human check is a protocol pilot by the authors.
+In-lab $\kappa{=}0.79$ is not an independent-rater estimate; the
+four-way type field is unevaluated; and the ten-percent budget is
+24 pairs.
+The annotators saw retrieved spans, so Table~\ref{tab:human} may
+favor {B3} and {B5} over labels-only {B1}.
+We omit {LectureBank} from the result tables because the public
+files contain topic titles, not lecture slides, and a title-only
+probe is not a second-corpus test.
+
+The tool is the induction pipeline---candidate generation,
+verbatim taxonomy cards, a validation threshold, {C1}--{C5}, a
+mention-plus-{LLM} stack, and a review queue---together with an
+explicit account of what each stage contributes and what it
+costs.
+
+\section{Limitations}
+\label{sec:limit}
+Several measurements remain out of reach on this dump.
+The {Wikidata} {P4644} map yields only 523 sitelinks and five gold
+positives with both endpoints linked, so a Wikipedia {RefD}
+ranking is not available; the mention-graph analog does not
+improve on the one-line mention rule.
+Scoring the $77{,}507$ train-pool pairs lets $501$ of $1{,}605$
+in-pool train gold edges enter {B7}, yet {C3} on that denser
+graph also deletes test true positives ({Etv} recall $0.465$ to
+$0.326$).
+The $48.3$\% {S2} ceiling is unchanged.
+
+A larger human sample labeled by raters who are not the authors
+would be needed before $t_{ij}$ can be scored as a four-way type:
+the second 240-pair sheet produced a single \texttt{transitive}
+judgment.
+Those raters should not see retrieved spans if the aim is to
+avoid a bias toward {B3}/{B5}.
+A pre-registered selective-review test is likewise still open.
+The stack was fit and thresholded on the same validation split,
+and {B1} was not scored on the $77{,}507$ train pairs, so a
+stack-induced {DAG} on the full pool is not reported.
+
+We also lack a slice whose gold edges touch skills introduced
+after the model cutoff.
+On {ESCO-PrereqSkill} the v1.1.1 {URI} difference contains no gold
+positive; label permutation already drives {AUC} to chance.
+Finally, the shuffled-card placebo uses a gold-complete subsample
+of $5{,}015$ pairs rather than a second pass over all $49{,}608$
+test pairs.
+Every {B3} test span is already the card of skill $A$ or $B$.
+
+\section{Conclusion}
+\label{sec:conclusion}
+We asked when taxonomy-card formatting and directional constraints
+help an {LLM} pair scorer on a skill taxonomy.
+On {ESCO} split {E}, repeating the skill card as a retrieved span
+helps \texttt{gpt-4o-mini} rank pairs, lowers its direction
+accuracy, and lowers {Qwen} ranking on the same test split.
+A mention rule has higher standalone {PR}-{AUC} than the {LLM}
+conditions; stacking that rule with {B1} and {B5} raises
+{PR}-{AUC} from $0.151$ to $0.265$.
+Calibration is nearly flat, as a no-bias temperature map must be
+at a $2$\% base rate.
+The reported graph---temperature-scaled {B5} scores, then {C2}
+and {C3}---yields a {DAG} with precision $0.100$ and full-gold
+recall $0.154$.
+
+\section*{Acknowledgments}
+The authors labeled the 240-pair sample (two annotators and one
+adjudicator) without seeing gold or model scores; this is a
+protocol pilot, not an independent rater study.
+
+\section*{Data and Code Availability}
+{ESCO-PrereqSkill} is public.\cite{Le_2025}
+A reproduction pack accompanying this manuscript contains the
+conversion and scoring scripts, the {S4} prompts, the configuration
+file (seed $42$, unseen-concept fraction $0.2$), the list of
+held-out skill identifiers, the two 240-pair human sheets (filled
+forms, overlap labels, and adjudicated gold), and the pair
+scores ($p_{A\to B}$, $p_{B\to A}$, gold) needed to recompute
+the {E}-test tables under {B1}/{B3}/{B5} and the {Qwen} 2.5 7B
+conditions.
+The pack is public at
+\url{https://github.com/tuanymc/p2a-prerequisite-graphs}.
+The full prompt-and-span logs will be posted with the
+camera-ready version.
+
+\section*{Conflict of Interest}
+The authors declare that they have no conflict of interest.
+
+\section*{Funding}
+This work received no specific grant from any funding agency.
+
+\section*{ORCID}
+Thu Do Thi --- \url{https://orcid.org/0009-0007-0220-3847}
+
+\noindent Tuan Dao Minh --- \url{https://orcid.org/0009-0009-1641-6813}
+
+\noindent Anh-Hien Dao --- \url{https://orcid.org/0009-0000-9619-1603}
+
+\noindent ORCID employment records for the first two authors may
+still list the former name Hung Yen University of Technology and
+Education; this article uses the name after the rename of
+3~September 2026.
+
+\appendix
+\section{Scoring Prompts}
+\label{app:prompts}
+The system message is the same for B1, B3, and B5:
+\begin{verbatim}
+You judge directed prerequisite relations.
+Return JSON only. Do not invent quotations.
+Cite only provided evidence_ids.
+Fields:
+- p_A_to_B, p_B_to_A: numeric floats in [0,1],
+  never strings or labels
+- relation_type: direct | transitive | none | ambiguous
+- direction: A_to_B | B_to_A | none
+- confidence_raw: numeric float in [0,1]
+- rationale: short string
+- evidence_ids: array of provided ids
+\end{verbatim}
+The user message always begins with the two skill records
+(\texttt{skill\_id}, preferred label, and description).
+B5 then inserts the taxonomy paths
+\texttt{Taxonomy A:} and \texttt{Taxonomy B:}.
+B3 and B5 append retrieved windows as
+\texttt{Evidence A$\to$B:} and \texttt{Evidence B$\to$A:}, each line
+\texttt{[source\_id] span}.
+B1 replaces those blocks with the sentence
+``No retrieved evidence. Do not fabricate spans.''
+Every variant ends with
+``Decide both directions. JSON only.''
+Decoding temperature is $0$.
+The model is asked for both directions in one call.
+
+\section{Token Cost and Wall-Clock Time}
+\label{app:cost}
+A 400-pair sample of B5 prompts for \texttt{gpt-4o-mini} gave a
+mean of $401$ input tokens per pair (90th percentile $448$).
+We budget $160$ output tokens per pair from the JSON schema.
+At the October 2026 OpenAI list price of \$0.15 / \$0.60 per
+million input / output tokens, one pass over $58{,}219$ pairs
+(E validation $+$ E test) has an expected list-price cost of about
+\$9 (range \$7--\$12 in the same estimate); the additional
+$77{,}507$ E-train pairs are about \$12 on the same budget
+(together $135{,}726$ scored B5 pairs).
+Taxonomy lines in B5 add only about two lines relative to B3.
+The parallel score loop took about $3.8$~h (B1), $5$~h (B3), and
+$4.8$~h (B5 val$+$test) of wall-clock time, plus about $6.9$~h for
+E-train B5.
+Eight {B5} requests that had initially been recorded as $p{=}0$
+were retried on the same model.
+Per-request latency was not logged; the hours above are the
+end-to-end loop, not a single-thread latency.
+{Qwen} 2.5 7B was scored on {E} validation ($8{,}611$ pairs) and
+{E} test ($49{,}608$ pairs) through an {OpenAI}-compatible {API};
+that token bill was not kept.
+Failed test requests (four on {B3}, 57 on {B5}) were retried.
+The mention-plus-{LLM} stack needs both {B1} and {B5} scores, so
+its token cost is about twice that of a single prompt variant on
+the same pairs.
+
+\bibliographystyle{ws-ijait}
+\bibliography{refs}
+
+\end{document}

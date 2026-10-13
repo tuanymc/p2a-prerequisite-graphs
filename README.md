@@ -30,6 +30,8 @@ in `scores/`. Do not commit `.env` or OpenRouter keys.
   E train+val+test pairs
 - `eval/gate_b.json` — bootstrap / SVM / earlier val+test graph snapshot
 - `requirements.txt`
+- `paper/` — IJAIT manuscript source (`p2a_ijait.tex`, `refs.bib`) and PDF
+- `docs/GioiThieuBanThao.docx` — Vietnamese first-year briefing (examples, Q&A)
 
 Official graph (temperature-scale B5 `p_A_to_B`/`p_B_to_A` at T=3.3,
 then C2+C3 at τ=0.55): B7 has 8,906 edges, precision 0.100, full-gold
