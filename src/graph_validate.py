@@ -94,7 +94,7 @@ def validate_graph(
                 inside = [(u, v) for u, v in g.edges(comp) if v in comp]
                 if not inside:
                     continue
-                inside.sort(key=lambda e: g[e[0]][e[1]]["u"], reverse=True)
+                inside.sort(key=lambda e: (-g[e[0]][e[1]]["u"], e[0], e[1]))
                 k = max(1, min(250, (len(inside) + 19) // 20))
                 for e in inside[:k]:
                     if g.has_edge(*e):

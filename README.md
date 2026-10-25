@@ -34,9 +34,12 @@ in `scores/`. Do not commit `.env` or OpenRouter keys.
 - `docs/GioiThieuBanThao.docx` — Vietnamese first-year briefing (examples, Q&A)
 
 Official graph (temperature-scale B5 `p_A_to_B`/`p_B_to_A` at T=3.3,
-then C2+C3 at τ=0.55): B7 has 8,906 edges, precision 0.100, full-gold
-recall 0.154, gold-in-pool recall 0.318. Pair F1@τ on E test DAG
-membership is 0.163.
+then C2+C3 at τ=0.55): B7 has 8,896 edges, precision 0.102, full-gold
+recall 0.157, gold-in-pool recall 0.325. Pair F1@τ on E test DAG
+membership is 0.167 (345 of 1,003). When uncertainties tie, C3 deletes
+the higher-uncertainty edge, then the smaller source skill id, then the
+smaller target skill id. An earlier process-hash order left 8,906 edges
+and is not the reported graph.
 
 ## What is not included
 

@@ -33,7 +33,7 @@ def finish_dag(rows: list[dict]) -> tuple[list[dict], dict, set, set]:
             inside = [(u, v) for u, v in g.edges(comp) if v in comp]
             if not inside:
                 continue
-            inside.sort(key=lambda e: 1.0 - conf.get(e, 0.0), reverse=True)
+            inside.sort(key=lambda e: (conf.get(e, 0.0), e[0], e[1]))
             e = inside[0]
             if g.has_edge(*e):
                 g.remove_edge(*e)
